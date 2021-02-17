@@ -1,21 +1,19 @@
 Error.stackTraceLimit = Infinity;
 
-const cities = ['Florianopolis','Joinville'];
-
-const BASE_URL = "https://community-open-weather-map.p.rapidapi.com/weather?id=2172797"
-const query = "&units=metric&mode=json&q="
+const sensorData = ['SportsSensor'];
 
 const fs = require("fs");
 const key = fs.readFileSync("api-key.key");
 
+const BASE_URL = "https://api.thingspeak.com/channels/"
+const query = `1297494/feeds.json?api_key=${key}&results=1`
+
 const unirest = require("unirest");
-async function getCityWeather(city) {
+async function getsensorData() {
 
     const result = await new Promise((resolve) => {
         unirest.get(
-            BASE_URL+query+city)
-        .header("X-RapidAPI-Host", "community-open-weather-map.p.rapidapi.com")
-        .header("X-RapidAPI-Key", key)
+            BASE_URL+query)
         .end(
             (response) => {
               console.log(response.body)
@@ -29,15 +27,19 @@ async function getCityWeather(city) {
 }
 
 function extractUsefulData(data) {
+    lastReading = data.feeds[0].created_at.replace('T',' ')
+    lastReading = lastReading.replace('Z','')
     return  {
-        city:               data.city,
-        temperature:        data.main.temp,
+        channelName:             data.channel.name,
+        channelDescription:      data.channel.description,
+        bpm:                     data.feeds[0].field1,
+        lastReading:             lastReading,
     };
 }
 
-const city_data_map = { };
+const sensor_data_map = { };
 
-const next_city  = ((arr) => {
+const next_sensorData  = ((arr) => {
    let counter = arr.length;
    return function() {
       counter += 1;
@@ -46,25 +48,32 @@ const next_city  = ((arr) => {
       }
       return arr[counter];
    };
-})(cities);
+})(sensorData);
 
-async function update_city_data(city) {
+async function update_sensor_data(sensor) {
 
     try {
-        const data  = await getCityWeather(city);
-        city_data_map[city] = extractUsefulData(data);
+        const data  = await getsensorData(sensor);
+        sensor_data_map[sensor] = extractUsefulData(data);
+        console.log(sensor_data_map)
     }
     catch(err) {
-        console.log("error city",city , err);
+        console.log("error sensor ",sensor , err);
         return ;
     }
 }
 
-const interval = 30 * 1000;
+const interval = 10 * 1000;
 setInterval(async () => {
-     const city = next_city();
-     console.log("updating city =",city);
-     await update_city_data(city);
+    try{
+        const sensor = next_sensorData();
+        console.log("updating sensor =",sensor);
+        await update_sensor_data(sensor);
+    }
+    catch(err){
+        console.log("error", err);
+        return ;
+    }
 }, interval);
 
 const opcua = require("node-opcua");
@@ -75,27 +84,49 @@ function construct_my_address_space(server) {
     const namespace = addressSpace.getOwnNamespace();
     const objectsFolder = addressSpace.rootFolder.objects;
 
-    const citiesNode  = namespace.addFolder(objectsFolder,{ browseName: "Cities"});
+    const sensorDataNode  = namespace.addFolder(objectsFolder,{ browseName: "sensorData"});
 
-    for (let city_name of cities) {
+    for (let sensor_name of sensorData) {
         
-        const cityNode = namespace.addFolder(citiesNode,{ browseName: city_name });
+        const sensorNode = namespace.addFolder(sensorDataNode,{ browseName: sensor_name });
         namespace.addVariable({
-            componentOf: cityNode,
-            browseName: "Temperature",
-            nodeId: `s=${city_name}-Temperature`,
+            componentOf: sensorNode,
+            browseName: "ChannelName",
+            nodeId: `s=${sensor_name}-ChannelName`,
+            dataType: "String",
+            value: {  get: function () { return extract_value(opcua.DataType.String, sensor_name,"channelName"); } }
+        });
+        namespace.addVariable({
+            componentOf: sensorNode,
+            browseName: "ChannelDescription",
+            nodeId: `s=${sensor_name}-ChannelDescription`,
+            dataType: "String",
+            value: {  get: function () { return extract_value(opcua.DataType.String, sensor_name,"channelDescription"); } }
+        });
+        namespace.addVariable({
+            componentOf: sensorNode,
+            browseName: "BPM",
+            nodeId: `s=${sensor_name}-BPM`,
             dataType: "Double",
-            value: {  get: function () { return extract_value(opcua.DataType.Double, city_name,"temperature"); } }
+            value: {  get: function () { return extract_value(opcua.DataType.Double, sensor_name,"bpm"); } }
+        });
+        namespace.addVariable({
+            componentOf: sensorNode,
+            browseName: "LastReading",
+            nodeId: `s=${sensor_name}-LastReading`,
+            dataType: "String",
+            value: {  get: function () { return extract_value(opcua.DataType.String, sensor_name,"lastReading"); } }
         });
     }
 }
-function extract_value(dataType,city_name,property) {
-    const city = city_data_map[city_name];
-    if (!city) {
+
+function extract_value(dataType,sensor_name,property) {
+    const sensor = sensor_data_map[sensor_name];
+    if (!sensor) {
         return opcua.StatusCodes.BadDataUnavailable
     }
 
-    const value = city[property];
+    const value = sensor[property];
     return new opcua.Variant({dataType, value: value });
 }
 
