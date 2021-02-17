@@ -1,5 +1,5 @@
 ## :file_folder: The Project
-Project developed during Mechatronics Engineering course for Distributed Systems subject. The main goal **Node OPCUA Server/Client** project is to implement OPCUA communication. To do so we've built a server using [node-opcua](https://github.com/node-opcua/node-opcua) library.
+Project developed during Mechatronics Engineering course for Distributed Systems subject. The main goal of the **Node OPCUA Server/Client** project is to implement OPCUA communication. To do so we've built a server using [node-opcua](https://github.com/node-opcua/node-opcua) library.
 As a source of data we've built a simple hardware solution using ESP8266 and a pulse sensor. These data were sent to [Thingspeak](https://thingspeak.com/), accessed through its API using the unirest* library and then presented by OPCUA server.
 
 *The unirest library uses the request module on its implement which is deprecated but it still works in this case. It's recommended to replace unirest with axios if you want to work with a library that still have support.
