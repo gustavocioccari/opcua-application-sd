@@ -13,7 +13,7 @@ As a source of data we've built a simple hardware solution using ESP8266 and a p
 
 ## :clipboard: Firmware explanation
   ### Pulse sensor
-  The optic sensor sends a signal from 0 to 1024 that is proportional to the observed in the user's blood. This reading is made every 0,1s and from that is inferred if heart is in diastole or systole process. From getting the time between 2 systoles is possible to determine the interval of a heart beat. From the average value of these intervals is calculated the heart frequency in BPM with a 200 reading cycles sample.
+  The optic sensor sends a signal from 0 to 1024 that is proportional to the observed pulse in the user's blood. This reading is made every 0,1s and from that is inferred if heart is in diastole or systole process. From getting the time between 2 systoles is possible to determine the interval of a heart beat. From the average value of these intervals is calculated the heart frequency in BPM with a 200 reading cycles sample.
 
   ### ESP8266 -> ThingSpeak API Connection
   ESP8266 connects to internet via WiFi and sends the acquired data to ThingSpeak platform via HTTP. ThingSpeak collects the BPM data every 20s and provide it via API which is requested by OPCUA Server.
