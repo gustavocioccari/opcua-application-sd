@@ -5,11 +5,11 @@ As a source of data we've built a simple hardware solution using ESP8266 and a p
 *The unirest library uses the request module on its implement which is deprecated but it still works in this case. It's recommended to replace unirest with axios if you want to work with a library that still have support.
 
 ## :rocket: Technologies
-|Data source       |OPCUA server   |   Web client    |
-|[ESP8266](https://www.espressif.com/sites/default/files/documentation/0a-esp8266ex_datasheet_en.pdf)           | :---:         |     :---:       |
-|[Pulse sensor](https://github.com/WorldFamousElectronics/PulseSensorPlayground) | Node.js       | Javascript      |
-|[ThingspeakIoT](https://thingspeak.com/)        | node-opcua    | Node-red        |
-|                  | unirest       |                 |
+|   Data source        |   OPCUA server  |    Web client    |
+| :---:                |     :---:       |        :---:     |
+| [ESP8266](https://www.espressif.com/sites/default/files/documentation/0a-esp8266ex_datasheet_en.pdf)            |  Node.js        | Javascript       |
+| [Pulse sensor](https://github.com/WorldFamousElectronics/PulseSensorPlayground)       |  node-opcua     | Node-red         |
+| [ThingspeakIoT](https://thingspeak.com/)      |  unirest        |                  |
 
 ## :clipboard: Firmware explanation
   ### Pulse sensor
@@ -22,7 +22,7 @@ As a source of data we've built a simple hardware solution using ESP8266 and a p
   The OPCUA Server retrieves data from ThingSpeak API by making a get request to it and then the data values can be accessesd by a client. The client can access the variables by browsing its name or by variable's nodeId. As the library used allows to create a custom nodeId we decided to access the variable using it.
   The client was made using Node-Red with a [OPCUA](https://flows.nodered.org/node/node-red-contrib-opcua) library and just shows to user the BPM retrieved from server.
 
-![## :camera: Project:]
+## :camera: Project:
 ![Software](sistema.png)
 ![Hardware](hardware.jfif)
 
@@ -30,7 +30,7 @@ As a source of data we've built a simple hardware solution using ESP8266 and a p
 ### Running the **OPCUA Server**:
 Clone this repository with 
 ```bash
-git clone https://github.com/gustavocioccari/server-opcua-sd.git ARRUMAR LINK
+git clone https://github.com/gustavocioccari/opcua-application-sd.git
 ```
 Then run the following commands:
 ```bash
@@ -39,6 +39,9 @@ npm i
 node 
 ```
 You'll have to change the "BASE_URL" and "params" consts to any other API you want to use.
+___
+### Running the **ESP8266 Firmware**:
+Open the code with Arduino and change ssid[] and pass[] variables with your WiFi credentials and change myChannelNumber and myWriteAPIKey with your ThingSpeak credentials.
 ___
 ### Running the **Web client**:
 You'll need [Node Red](https://nodered.org/docs/getting-started/local) installed and install the [node-red-contrib-opcua](https://flows.nodered.org/node/node-red-contrib-opcua) package to run the client
